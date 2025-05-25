@@ -18,6 +18,10 @@ public:
     void setTask(const Task &task);
     Task getTask() const;
 
+private slots:
+    void onAddTag();
+    void onRemoveTag();
+
 private:
     Ui::TaskDialog *ui;
 };
