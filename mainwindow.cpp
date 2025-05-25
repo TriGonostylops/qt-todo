@@ -6,6 +6,11 @@
 #include "taskdialog.h"
 #include <QDateEdit>
 #include <QComboBox>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QFileDialog>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,7 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->todoListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
     connect(ui->inProgressListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
     connect(ui->doneListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
-
+    connect(ui->actionSave_File, &QAction::triggered, this, &MainWindow::onSave);
+    connect(ui->actionLoad_File, &QAction::triggered, this, &MainWindow::onLoad);
 }
 
 MainWindow::~MainWindow() {
@@ -157,5 +163,50 @@ void MainWindow::onTaskDoubleClicked(QListWidgetItem* item) {
         dialog.findChild<QListWidget*>("tagsListWidget")->setEnabled(false);
 
         dialog.exec();
+    }
+}
+
+void MainWindow::saveToFile(const QString &fileName) {
+    QJsonArray array;
+    for (const Task &task : tasks) {
+        array.append(task.toJson());
+    }
+
+    QJsonDocument doc(array);
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(doc.toJson());
+        file.close();
+    }
+}
+
+void MainWindow::loadFromFile(const QString &fileName) {
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonArray array = doc.array();
+
+    tasks.clear();
+    for (const QJsonValue &val : array) {
+        tasks.append(Task::fromJson(val.toObject()));
+    }
+
+    refreshTaskList();
+}
+void MainWindow::onSave() {
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Tasks", "", "JSON Files (*.json)");
+    if (!fileName.isEmpty()) {
+        saveToFile(fileName);
+    }
+}
+
+void MainWindow::onLoad() {
+    QString fileName = QFileDialog::getOpenFileName(this, "Load Tasks", "", "JSON Files (*.json)");
+    if (!fileName.isEmpty()) {
+        loadFromFile(fileName);
     }
 }

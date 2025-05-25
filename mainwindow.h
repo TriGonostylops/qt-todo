@@ -21,12 +21,17 @@ private slots:
     void onEditTask();
     void onDeleteTask();
     void onTaskDoubleClicked(QListWidgetItem* item);
+    void onSave();
+    void onLoad();
 
 private:
     Ui::MainWindow *ui;
     QList<Task> tasks;
 
     void refreshTaskList();
+    void saveToFile(const QString &fileName);
+    void loadFromFile(const QString &fileName);
+
 };
 
 #endif // MAINWINDOW_H
