@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "task.h"
+#include <QListWidgetItem>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,6 +20,7 @@ private slots:
     void onAddTask();
     void onEditTask();
     void onDeleteTask();
+    void onTaskDoubleClicked(QListWidgetItem* item);
 
 private:
     Ui::MainWindow *ui;

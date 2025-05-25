@@ -4,6 +4,8 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include "taskdialog.h"
+#include <QDateEdit>
+#include <QComboBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,6 +15,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTask);
     connect(ui->editTaskButton, &QPushButton::clicked, this, &MainWindow::onEditTask);
     connect(ui->deleteTaskButton, &QPushButton::clicked, this, &MainWindow::onDeleteTask);
+    connect(ui->todoListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
+    connect(ui->inProgressListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
+    connect(ui->doneListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onTaskDoubleClicked);
+
 }
 
 MainWindow::~MainWindow() {
@@ -110,5 +116,46 @@ void MainWindow::refreshTaskList() {
             ui->doneListWidget->addItem(item);
             break;
         }
+    }
+}
+void MainWindow::onTaskDoubleClicked(QListWidgetItem* item) {
+    if (!item) return;
+
+    QListWidget* senderList = qobject_cast<QListWidget*>(sender());
+    if (!senderList) return;
+
+    // Determine the index in the master `tasks` list
+    int index = -1;
+    QString text = item->text();
+
+    for (int i = 0; i < tasks.size(); ++i) {
+        const Task& task = tasks[i];
+
+        QString taskLabel = QString("%1 [%2]").arg(task.title).arg(task.dueDate.toString("yyyy-MM-dd"));
+        if (taskLabel == text) {
+            // Ensure it's from the correct list
+            if ((senderList == ui->todoListWidget && task.status == Status::ToDo) ||
+                (senderList == ui->inProgressListWidget && task.status == Status::InProgress) ||
+                (senderList == ui->doneListWidget && task.status == Status::Done)) {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    if (index >= 0 && index < tasks.size()) {
+        TaskDialog dialog(this);
+        dialog.setTask(tasks[index]);
+        dialog.setWindowTitle("View Task");
+
+        dialog.findChild<QLineEdit*>("titleEdit")->setEnabled(false);
+        dialog.findChild<QDateEdit*>("dueDateEdit")->setEnabled(false);
+        dialog.findChild<QComboBox*>("statusComboBox")->setEnabled(false);
+        dialog.findChild<QLineEdit*>("newTagLineEdit")->setEnabled(false);
+        dialog.findChild<QPushButton*>("addTagButton")->setEnabled(false);
+        dialog.findChild<QPushButton*>("removeTagButton")->setEnabled(false);
+        dialog.findChild<QListWidget*>("tagsListWidget")->setEnabled(false);
+
+        dialog.exec();
     }
 }
