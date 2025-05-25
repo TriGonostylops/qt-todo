@@ -3,11 +3,15 @@
 
 #include <QString>
 #include <QDate>
-
+enum class Status {
+    ToDo,
+    InProgress,
+    Done
+};
 struct Task {
     QString title;
     QDate dueDate;
-    bool completed = false;
+    Status status;
 };
 
 #endif // TASK_H
