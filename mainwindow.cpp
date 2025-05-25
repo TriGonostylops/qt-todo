@@ -190,7 +190,6 @@ void MainWindow::loadFromFile(const QString &fileName) {
     QJsonDocument doc = QJsonDocument::fromJson(data);
     QJsonArray array = doc.array();
 
-    tasks.clear();
     for (const QJsonValue &val : array) {
         tasks.append(Task::fromJson(val.toObject()));
     }
